@@ -3,6 +3,7 @@ This project allows to perform CRUD of users and posts, containing a login syste
 
 # Step 1
 Clone the repository on your machine.
+Run `git clone https://github.com/WellingtonMaia/login-jwt.git`
 
 # Step 2
 Run `npm install`.
