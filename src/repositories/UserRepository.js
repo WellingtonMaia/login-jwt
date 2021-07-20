@@ -13,7 +13,11 @@ class UserRepository extends Repository {
 
   async create(body) {
     const newPasswordWithHash = await this.generateHashPassword(body.password);
-    const newBody = {...body, password: newPasswordWithHash };
+    const newBody = {
+      ...body, 
+      password: newPasswordWithHash, 
+      checked_email: false
+    };
     return await super.create(newBody);
   }
 
@@ -26,8 +30,10 @@ class UserRepository extends Repository {
     );
   }
 
-  async emailExist(email) {
-    const user = super.getByCustomNotException({email: email})
+  async updateCheckedEmail(id) {
+    const value = { checked_email: true };
+    const where = { id: id };
+    return await super.updateCustom(value, where);
   }
 }
 

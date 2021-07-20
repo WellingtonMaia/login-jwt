@@ -6,7 +6,8 @@ const route = require('./routes/index');
 
 const app = express();
 
-require('./redis/blacklist');
+require('./redis/BlocklistAccessToken');
+require('./redis/AllowlistRefreshToken');
 
 route(app);
 

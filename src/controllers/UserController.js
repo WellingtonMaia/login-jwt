@@ -1,6 +1,7 @@
 const UserRepository = require('../repositories/UserRepository');
 const repository = new UserRepository();
 const ValidRequest = require('./validRequest/ValidRequest');
+const CheckMailService = require('../services/CheckMailService');
 
 class UserController {
   static async index(req, res) {
@@ -32,6 +33,8 @@ class UserController {
       const { body } = req;
       
       const userCreated = await repository.create(body);
+      
+      CheckMailService.sendEmail(userCreated);
 
       return res.status(200).json(userCreated);
     } catch (error) {
@@ -70,6 +73,15 @@ class UserController {
       return res.status(200).end();
     } catch (error) {
       return res.status(404).json(error.message);
+    }
+  }
+
+  static async updateCheckedEmail({ user }, res) {
+    try {
+      const result = await repository.updateCheckedEmail(user.id);
+      return res.status(201).json(result);
+    } catch (error) {
+      return res.status(500).json(error.message);
     }
   }
 }

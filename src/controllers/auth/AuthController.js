@@ -1,15 +1,14 @@
-const token = require('./Token');
-const ManipuleBlacklist = require('../../redis/ManipuleBlacklist');
+const Tokens = require('./Tokens');
 
 class AuthController {
-  static login (req, res) {
+  static async login ({ user }, res) {
     try {
-
-      const tokenGenerated = token.createTokenJWT(req.user);
+      const accessToken = Tokens.createJsonWebToken(user.id);
+      const refreshToken =  await Tokens.createOpacoToken(user.id);
       
-      res.set('Authorization', tokenGenerated);
+      res.set('Authorization', accessToken);
 
-      return res.status(204).end(); 
+      return res.status(200).json({ refreshToken }); 
     } catch (error) {
       return res.status(500).json(error.message);
     }
@@ -18,7 +17,7 @@ class AuthController {
   static async logout (req, res) {
     try {
       const token = req.token;
-      await ManipuleBlacklist.addToken(token);
+      await Tokens.invalidateJsonWebToken(token);
       return res.status(204).end();
     } catch (error) {
       return res.status(500).json(error.message);

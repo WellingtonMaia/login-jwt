@@ -67,14 +67,14 @@ class Repository {
 
   async updateCustom(values, where, transaction = {}) {
     this.conditionsIsValid(where);
-    
-    await this.getById(where);
+
+    await this.getByCustom(where);
 
     await database[this.modelName].update(values, {
       where: { ...where }
-    }, { transaction: transaction })
+    }, { transaction: transaction });
 
-    return await this.getById(where);
+    return await this.getByCustom(where);
   }
 
   async delete(id) {

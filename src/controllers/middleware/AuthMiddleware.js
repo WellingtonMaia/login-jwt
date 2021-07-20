@@ -1,12 +1,16 @@
 const passport = require('../auth/authConfig');
 
+const UserRepository = require('../../repositories/UserRepository');
+const repository = new UserRepository();
+
+const Tokens = require('../auth/Tokens');
+
 class AuthMiddleware {
   static local(req, res, next) {
     passport.authenticate(
       'local',
       { session: false },
       (error, user, info) => {
-        
         if (error && error.name === 'InvalidArgumentError') {
           return res.status(401).json({error: error.message});
         }
@@ -53,6 +57,24 @@ class AuthMiddleware {
         return next();
       }
     )(req, res, next);
+  }
+
+  static async refresh(req, res, next) {
+    try {
+      const { refreshToken } = req.body;
+      const id = await Tokens.checkOpacoToken(refreshToken);
+      await Tokens.invalidateOpacoToken(refreshToken);
+      req.user = await repository.getById(id);
+      
+      return next();
+    
+    } catch (error) {
+      if (error.name === 'InvalidArgumentError') {
+        return res.status(401).json({error: error.message});
+      }
+
+      return res.status(500).json({error: error.message});
+    }
   }
 }
 

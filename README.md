@@ -25,6 +25,9 @@ Run `node -e "console.log( require('crypto').randomBytes(256).toString('base64')
 Into of file `.env` add the key generate on tag `JWT_KEY`.
 
 # Step 8
+It's necessary add the **base url** on `.env` file.
+
+# Step 9
 Run `npm start` to initialize server.
 
 # Notes

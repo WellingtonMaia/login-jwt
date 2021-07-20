@@ -4,13 +4,20 @@ const router = require('express').Router({
 const AuthController = require('../controllers/auth/AuthController');
 const AuthMiddleware = require('../controllers/middleware/AuthMiddleware');
 
+router.post('/refresh-token', 
+  AuthMiddleware.refresh, 
+  AuthController.login
+);
+
 router.post('/login',
   AuthMiddleware.local,
   AuthController.login
 );
 
-router.get('/logout', 
-  AuthMiddleware.bearer,
+router.post('/logout', [
+    AuthMiddleware.refresh,
+    AuthMiddleware.bearer
+  ],
   AuthController.logout
 );
 
