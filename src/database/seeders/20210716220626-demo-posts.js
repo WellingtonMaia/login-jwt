@@ -9,6 +9,7 @@ module.exports = {
       posts.push({
         title: faker.name.title(),
         content: faker.lorem.sentences(),
+        author_id: faker.random.number({min: 1, max: 10}),
         createdAt: new Date(),
         updatedAt: new Date(),
       });

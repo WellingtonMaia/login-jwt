@@ -4,16 +4,16 @@ const ValidRequest = require('./validRequest/ValidRequest');
 const CheckMailService = require('../services/CheckMailService');
 
 class UserController {
-  static async index(req, res) {
+  static async index(req, res, next) {
     try {
-      const users = await repository.all();
-      return res.status(200).json(users);  
+      const users = await repository.getUsers(req.isAuthenticating, req.access);
+      return res.status(200).send(users);  
     } catch (error) {
-      return res.status(500).json(error.message);
+      next(error);
     }
   }
 
-  static async show({ params }, res) {
+  static async show({ params }, res, next) {
     try {
       const user = await repository.getById(
         params.id,
@@ -22,11 +22,11 @@ class UserController {
 
       return res.status(200).json(user); 
     } catch (error) {
-      return res.status(404).json(error.message);
+      next(error);
     }
   }
 
-  static async store(req, res) {
+  static async store(req, res, next) {
     try {
       ValidRequest.validateRequest(req);
       
@@ -38,11 +38,11 @@ class UserController {
 
       return res.status(200).json(userCreated);
     } catch (error) {
-      return res.status(500).json(error.message);
+      next(error);
     }
   }
 
-  static async update(req, res) {
+  static async update(req, res, next) {
     try {
       ValidRequest.validateRequest(req);
 
@@ -52,36 +52,36 @@ class UserController {
 
       return res.status(200).json(userUpdated);
     } catch (error) {
-      return res.status(404).json(error.message);
+      next(error);
     }
   }
 
-  static async delete({ params }, res) {
+  static async delete({ params }, res, next) {
     try {
-      const userDeleted = repository.delete(params.id);
+      const userDeleted = await repository.delete(params.id);
 
       return res.status(200).json(userDeleted);      
     } catch (error) {
-      return res.status(404).json(error.message);
+      next(error);
     }
   }
 
-  static async restore({ params }, res) {
+  static async restore({ params }, res, next) {
     try {
       await repository.restore(params.id);
 
       return res.status(200).end();
     } catch (error) {
-      return res.status(404).json(error.message);
+      next(error);
     }
   }
 
-  static async updateCheckedEmail({ user }, res) {
+  static async updateCheckedEmail({ user }, res, next) {
     try {
       const result = await repository.updateCheckedEmail(user.id);
       return res.status(201).json(result);
     } catch (error) {
-      return res.status(500).json(error.message);
+      next(error);
     }
   }
 }

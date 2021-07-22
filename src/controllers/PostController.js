@@ -3,16 +3,17 @@ const repository = new PostRepository();
 const ValidRequest = require('./validRequest/ValidRequest');
 
 class PostsController {
-  static async index(req, res) {
+  static async index(req, res, next) {
     try {
-      const posts = await repository.all();
-      return res.status(200).json(posts);  
+      let posts = await repository.getPosts(req.isAuthenticating, req.access);
+
+      return res.status(200).send(posts);  
     } catch (error) {
-      return res.status(500).json(error.message);
+      next(error);
     }
   }
 
-  static async show({ params }, res) {
+  static async show({ params }, res, next) {
     try {
       const post = await repository.getById(
         params.id,
@@ -21,25 +22,27 @@ class PostsController {
 
       return res.status(200).json(post); 
     } catch (error) {
-      return res.status(404).json(error.message);
+      next(error);
     }
   }
 
-  static async store(req, res) {
+  static async store(req, res, next) {
     try {
       ValidRequest.validateRequest(req);
 
-      const { body } = req;
+      const { body, user } = req;
       
-      const postCreated = await repository.create(body);
+      const newBody = Object.assign({}, body, {author_id: user.id});
+
+      const postCreated = await repository.create(newBody);
 
       return res.status(200).json(postCreated);
     } catch (error) {
-      return res.status(500).json(error.message);
+      next(error);
     }
   }
 
-  static async update(req, res) {
+  static async update(req, res, next) {
     try {
       ValidRequest.validateRequest(req);
 
@@ -49,27 +52,27 @@ class PostsController {
 
       return res.status(200).json(postUpdated);
     } catch (error) {
-      return res.status(404).json(error.message);
+      next(error);
     }
   }
 
-  static async delete({ params }, res) {
+  static async delete({ params }, res, next) {
     try {
-      const postDeleted = repository.delete(params.id);
+      const postDeleted = await repository.delete(params.id);
 
       return res.status(200).json(postDeleted);      
     } catch (error) {
-      return res.status(404).json(error.message);
+      next(error);
     }
   }
 
-  static async restore({ params }, res) {
+  static async restore({ params }, res, next) {
     try {
       await repository.restore(params.id);
       
       return res.status(200).end();
     } catch (error) {
-      return res.status(404).json(error.message);
+      next(error);
     }
   }  
 }

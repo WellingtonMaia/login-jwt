@@ -1,12 +1,12 @@
 const database = require('../database/models');
-
+const { NotFoundError } = require("../errors/erros");
 class Repository {
   
   constructor(modelName) {
     this.modelName = modelName;
     
     this.conditionsIsValid = (where) => {
-      if (!where) throw new Error('Uninformed conditions!');
+      if (!where) throw new NotFoundError('Uninformed conditions!');
     }
   }
 
@@ -24,7 +24,7 @@ class Repository {
     });
 
     if (!found) {
-      throw new Error(msgError || `${this.modelName} not found!`);
+      throw new NotFoundError(msgError || `${this.modelName} not found!`);
     }
 
     return found;
@@ -34,7 +34,7 @@ class Repository {
     const found = await this.getByCustomNotException(where, raw)
     
     if (!found) {
-      throw new Error(msgError || `${this.modelName} not found!`);
+      throw new NotFoundError(msgError || `${this.modelName} not found!`);
     }
     
     return found;

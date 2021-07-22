@@ -12,7 +12,7 @@ module.exports = [
     .custom(async (email) => {
       const user = await repository.getByCustomNotException({email: email});
       if(user) {
-        return Promise.reject('E-mail already in use!');
+        return Promise.reject('E-mail already registered!');
       }
     }),
     
@@ -20,4 +20,8 @@ module.exports = [
       min: 6, max: 10
     })
     .withMessage('Fill password, (min: 6, max: 10)!'),
-]
+
+    body('permission').not().isEmpty()
+    .isIn(['admin', 'editor', 'subscriber'])
+    .withMessage("Select permission 'admin', 'editor' or 'subscriber'")
+  ]

@@ -5,7 +5,9 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
-      // define association here
+      User.hasMany(models.Post, {
+        foreignKey: 'author_id'
+      });
     }
   };
   User.init({
@@ -13,6 +15,7 @@ module.exports = (sequelize, DataTypes) => {
     email: DataTypes.STRING,
     password: DataTypes.STRING,
     checked_email: DataTypes.BOOLEAN,
+    permission: DataTypes.ENUM('admin', 'editor', 'subscriber'),
   }, {
     sequelize,
     modelName: 'User',

@@ -4,17 +4,62 @@ const router = require('express').Router({
 
 const PostController = require('../controllers/PostController');
 const validation = require('./validation/post');
+const AuthMiddleware = require('../controllers/middleware/AuthMiddleware');
+const AuthorizationMiddleware = 
+require('../controllers/middleware/AuthorizationMiddleware');
+const TryAutentication = 
+require('../controllers/middleware/TryAuthentication');
+const TryToAuthorize = require('../controllers/middleware/TryToAuthorize');
 
-router.get('/', PostController.index);
+router.get('/',
+  [
+    TryAutentication.isAuthenticating,
+    TryToAuthorize.isAuthorize('post', 'read')
+  ],
+  PostController.index
+);
 
-router.post('/', validation, PostController.store);
+router.post('/',
+  [
+    AuthMiddleware.bearer,
+    AuthorizationMiddleware.permission('post', 'create'),
+    validation
+  ], 
+  PostController.store
+);
 
-router.get('/:id', PostController.show);
+router.get('/:id', 
+  [
+    AuthMiddleware.bearer,
+    AuthorizationMiddleware.permission('post', 'read')
+  ],
+  PostController.show
+);
 
-router.put('/:id', validation, PostController.update);
+router.put('/:id', 
+  [
+    AuthMiddleware.bearer,
+    AuthorizationMiddleware.permission('post', 'update'),
+    validation, 
+  ],
+  PostController.update
+);
 
-router.delete('/', PostController.delete);
+router.delete('/:id', 
+  [
+    AuthMiddleware.bearer,
+    AuthMiddleware.local,
+    AuthorizationMiddleware.permission('post', 'delete'),
+  ],
+  PostController.delete
+);
 
-router.post('/:id/restore', PostController.restore);
+router.post('/:id/restore',
+  [
+    AuthMiddleware.bearer,
+    AuthorizationMiddleware.permission('post', 'update'), 
+  ],
+  PostController.restore
+);
 
 module.exports = router;

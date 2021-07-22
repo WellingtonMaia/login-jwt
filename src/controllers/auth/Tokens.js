@@ -3,12 +3,15 @@ const crypto = require('crypto');
 const moment = require('moment');
 
 const BlocklistAccessToken = require('../../redis/BlocklistAccessToken');
-const { InvalidArgumentError } = require('../../errors/erros');
 const allowlistRefreshToken = require('../../redis/AllowlistRefreshToken');
+const allowlistResetPasswordToken = require('../../redis/ResetPasswordToken');
 
-const defaultValueJWT = [15, 'm'];
+const { InvalidArgumentError } = require('../../errors/erros');
+
+const defaultValueJWT = [5, 'd']; //after change to 15 min => [15, 'm'];
 const defaultValueOpacoToken = [5, 'd'];
 const defaultValueCheckEmail = [1, 'h'];
+const defaultValueResetPassword = [1, 'h'];
 
 class Tokens {
   static createJsonWebToken(
@@ -35,23 +38,14 @@ class Tokens {
     allowlist = allowlistRefreshToken, 
     [ amountTimeExpiration, unitTime ] = defaultValueOpacoToken
     ) {
-    const sizeBytes = 24
-    const expireIn = moment().add(amountTimeExpiration, unitTime).unix();
-    const opacoToken = crypto.randomBytes(sizeBytes).toString('hex');
-    
-    await allowlist.add(opacoToken, id, expireIn);
-
-    return opacoToken;
+    return await generateOpacoToken(id, allowlist, amountTimeExpiration, unitTime);
   }
 
   static async checkOpacoToken(token, 
     allowlist = allowlistRefreshToken,
     name = 'Refresh Token'
   ) {
-    checkTokenSended(token, name);
-    const id = await allowlist.getValue(token);
-    checkTokenIsValid(id, name);
-    return id;  
+    return await checkIfOpacoTokenIsValid(token, name, allowlist);  
   }
 
   static async invalidateOpacoToken(token, allowlist = allowlistRefreshToken) {
@@ -69,6 +63,45 @@ class Tokens {
   ) {
     return await checkJWT(token, undefined, name)
   }
+
+  static async resetPassword(
+    id, 
+    allowlist = allowlistResetPasswordToken,
+    [amountTimeExpiration, unitTime] = defaultValueResetPassword
+  ) {
+    return await generateOpacoToken(
+      id, allowlist, amountTimeExpiration, unitTime
+    );
+  }
+
+  static async checkTokenToResetPassword(
+    token, 
+    allowlist = allowlistResetPasswordToken,
+    name = 'Reset Password Token'
+  ) {
+    return await checkIfOpacoTokenIsValid(token, name, allowlist);  
+  }
+
+  static async invalidateResetPasswordToken(token, allowlist = allowlistResetPasswordToken) {
+    await allowlist.delete(token)
+  }
+}
+
+async function checkIfOpacoTokenIsValid(token, name, allowlist) {
+  checkTokenSended(token, name);
+  const id = await allowlist.getValue(token);
+  checkTokenIsValid(id, name);
+  return id;
+}
+
+async function generateOpacoToken(id, allowlist, amountTimeExpiration, unitTime) {
+  const sizeBytes = 24;
+  const expireIn = moment().add(amountTimeExpiration, unitTime).unix();
+  const opacoToken = crypto.randomBytes(sizeBytes).toString('hex');
+
+  await allowlist.add(opacoToken, id, expireIn);
+
+  return opacoToken;
 }
 
 async function checkJWT(token, blocklist, name) {

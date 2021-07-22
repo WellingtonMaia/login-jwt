@@ -11,19 +11,12 @@ class AuthMiddleware {
       'local',
       { session: false },
       (error, user, info) => {
-        if (error && error.name === 'InvalidArgumentError') {
-          return res.status(401).json({error: error.message});
-        }
-
         if (error) {
-          return res.status(500).json(error.message);
-        }
-        
-        if (!user) {
-          return res.status(401).json({error: 'Credentials invalid'});
+          return next(error);
         }
 
         req.user = user;
+        req.isAuthenticating = true;
         return next();
       }
     )(req, res, next);
@@ -34,26 +27,13 @@ class AuthMiddleware {
       'bearer',
       { session: false },
       (error, user, info) => {
-
-        if (error && error.name === 'JsonWebTokenError') {
-          return res.status(401).json({error: error.message});
-        }
-
-        if (error && error === 'jwt expired') {
-          return res
-          .status(401)
-          .json({error: error});
-        }
-
         if (error) {
-          return res.status(500).json(error.message);
+          return next(error);
         }
         
-        if (!user) {
-          return res.status(401).json({error: 'Credentials invalid'});
-        }
         req.token = info.token;
         req.user = user;
+        req.isAuthenticating = true;
         return next();
       }
     )(req, res, next);
@@ -65,15 +45,11 @@ class AuthMiddleware {
       const id = await Tokens.checkOpacoToken(refreshToken);
       await Tokens.invalidateOpacoToken(refreshToken);
       req.user = await repository.getById(id);
-      
+      req.isAuthenticating = true;
       return next();
     
     } catch (error) {
-      if (error.name === 'InvalidArgumentError') {
-        return res.status(401).json({error: error.message});
-      }
-
-      return res.status(500).json({error: error.message});
+      return next(error);
     }
   }
 }

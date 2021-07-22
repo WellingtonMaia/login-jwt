@@ -5,12 +5,15 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class Post extends Model {
     static associate(models) {
-      // define association here
+      Post.belongsTo(models.User, {
+        foreignKey: 'author_id'
+      });
     }
   };
   Post.init({
     title: DataTypes.STRING,
-    content: DataTypes.TEXT
+    content: DataTypes.TEXT,
+    author_id: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Post',

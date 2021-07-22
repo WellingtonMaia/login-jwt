@@ -3,7 +3,7 @@ const LocalStrategy = require('passport-local');
 const { compare } = require('bcrypt');
 const BearerStrategy = require('passport-http-bearer').Strategy;
 
-const { InvalidArgumentError } = require('../../errors/erros');
+const { NotAuthorized } = require('../../errors/erros');
 
 const UserRepository = require('../../repositories/UserRepository');
 const userRepository = new UserRepository();
@@ -19,6 +19,10 @@ passport.use(
     try {
       const user = await userRepository.getUserByEmail(email);
       
+      if (!user) {
+        new NotAuthorized();
+      }
+
       await checkPassword(password, user.password);
 
       done(null, user);      
@@ -31,7 +35,7 @@ passport.use(
 async function checkPassword(password, hashPassword) {
   const passwordIsValid = await compare(password, hashPassword);
   if (!passwordIsValid) {
-    throw new InvalidArgumentError('Mail or password was invalid');
+    throw new NotAuthorized();
   }
 }
 
