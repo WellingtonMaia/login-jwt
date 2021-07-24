@@ -1,5 +1,6 @@
 const PostConverter = require('../converter/PostConverter');
 const Repository = require('./Repository');
+const { access: getAttributesToShow } = require('../utils/access');
 
 class PostRepository extends Repository {
   constructor() {
@@ -9,9 +10,7 @@ class PostRepository extends Repository {
   async getPosts(isAuthenticating, access) {
     let posts = await super.all();
     
-    const attributes = access.any.allowed 
-    ? access.any.attributes 
-    : access.own.attributes; 
+    const attributes = getAttributesToShow(access);
     
     const converter = new PostConverter('json', attributes);
     
